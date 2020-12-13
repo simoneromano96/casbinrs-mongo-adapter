@@ -1,0 +1,1 @@
+# casbinrs-mongo-adapter
