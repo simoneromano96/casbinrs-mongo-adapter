@@ -15,14 +15,15 @@ pub(crate) struct CasbinRule {
 
 impl CasbinRule {
     pub fn from_document(document: &Document) -> Result<Self, ValueAccessError> {
+        // We must have id, so we can safely unwrap it
         let id = document.get_object_id("_id")?.clone();
-        let ptype = document.get_str("ptype")?.to_owned();
-        let v0 = document.get_str("v0")?.to_owned();
-        let v1 = document.get_str("v1")?.to_owned();
-        let v2 = document.get_str("v2")?.to_owned();
-        let v3 = document.get_str("v3")?.to_owned();
-        let v4 = document.get_str("v4")?.to_owned();
-        let v5 = document.get_str("v5")?.to_owned();
+        let ptype = document.get_str("ptype").unwrap_or("").to_owned();
+        let v0 = document.get_str("v0").unwrap_or("").to_owned();
+        let v1 = document.get_str("v1").unwrap_or("").to_owned();
+        let v2 = document.get_str("v2").unwrap_or("").to_owned();
+        let v3 = document.get_str("v3").unwrap_or("").to_owned();
+        let v4 = document.get_str("v4").unwrap_or("").to_owned();
+        let v5 = document.get_str("v5").unwrap_or("").to_owned();
 
         Ok(Self {
             id,

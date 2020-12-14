@@ -4,7 +4,7 @@
 use casbin::{error::AdapterError, Error as CasbinError, Filter, Result};
 use futures::stream::StreamExt;
 use mongodb::{
-    bson::{doc, Document},
+    bson::{doc, Document, Regex},
     Client, Collection, Cursor, Database,
 };
 
@@ -34,8 +34,8 @@ pub async fn new(db: &Database) -> Result<Document> {
 }
 
 fn filtered_where_values<'a>(filter: &Filter<'a>) -> ([&'a str; 6], [&'a str; 6]) {
-    let mut g_filter: [&'a str; 6] = ["%", "%", "%", "%", "%", "%"];
-    let mut p_filter: [&'a str; 6] = ["%", "%", "%", "%", "%", "%"];
+    let mut g_filter: [&'a str; 6] = ["/.*/", "/.*/", "/.*/", "/.*/", "/.*/", "/.*/"];
+    let mut p_filter: [&'a str; 6] = ["/.*/", "/.*/", "/.*/", "/.*/", "/.*/", "/.*/"];
     for (idx, val) in filter.g.iter().enumerate() {
         if val != &"" {
             g_filter[idx] = val;
@@ -57,7 +57,7 @@ fn normalize_casbin_rule(mut rule: Vec<String>, field_index: usize) -> Vec<Strin
 async fn casbin_rules_from_cursor(cursor: Cursor) -> Vec<CasbinRule> {
     let rules_doc: Vec<mongodb::error::Result<Document>> = cursor.collect().await;
 
-    rules_doc
+    let result: Vec<CasbinRule> = rules_doc
         .iter()
         .filter_map(|result| {
             if let Ok(document) = result {
@@ -67,7 +67,9 @@ async fn casbin_rules_from_cursor(cursor: Cursor) -> Vec<CasbinRule> {
                 None
             }
         })
-        .collect()
+        .collect();
+
+    result
 }
 
 pub(crate) async fn load_policy(collection: &Collection) -> Result<Vec<CasbinRule>> {
@@ -87,32 +89,129 @@ pub(crate) async fn load_filtered_policy<'a>(
 ) -> Result<Vec<CasbinRule>> {
     let (g_filter, p_filter) = filtered_where_values(filter);
 
-    let rules_cursor = collection
-        .find(
-            doc! {
-                "$or": [
-                    {
-                        "ptype": "/^g/",
-                        "v0": g_filter[0],
-                        "v1": g_filter[1],
-                        "v2": g_filter[2],
-                        "v3": g_filter[3],
-                        "v4": g_filter[4],
-                        "v5": g_filter[5],
-                    },
-                    {
-                        "ptype": "/^p/",
-                        "v0": p_filter[0],
-                        "v1": p_filter[1],
-                        "v2": p_filter[2],
-                        "v3": p_filter[3],
-                        "v4": p_filter[4],
-                        "v5": p_filter[5],
-                    }
-                ]
+    let mut query = Document::new();
+
+    let g_filter = {
+        let mut g_doc = Document::new();
+
+        g_doc.insert(
+            "ptype",
+            Regex {
+                pattern: String::from("/^g/"),
+                options: String::from("i"),
             },
-            None,
-        )
+        );
+        g_doc.insert(
+            "v0",
+            Regex {
+                pattern: String::from(g_filter[0]),
+                options: String::from("i"),
+            },
+        );
+        g_doc.insert(
+            "v1",
+            Regex {
+                pattern: String::from(g_filter[1]),
+                options: String::from("i"),
+            },
+        );
+        g_doc.insert(
+            "v2",
+            Regex {
+                pattern: String::from(g_filter[2]),
+                options: String::from("i"),
+            },
+        );
+        g_doc.insert(
+            "v3",
+            Regex {
+                pattern: String::from(g_filter[3]),
+                options: String::from("i"),
+            },
+        );
+        g_doc.insert(
+            "v4",
+            Regex {
+                pattern: String::from(g_filter[4]),
+                options: String::from("i"),
+            },
+        );
+        g_doc.insert(
+            "v5",
+            Regex {
+                pattern: String::from(g_filter[5]),
+                options: String::from("i"),
+            },
+        );
+
+        g_doc
+    };
+
+    let p_filter = {
+        let mut p_doc = Document::new();
+
+        p_doc.insert(
+            "ptype",
+            Regex {
+                pattern: String::from("/^p/"),
+                options: String::from("i"),
+            },
+        );
+        p_doc.insert(
+            "v0",
+            Regex {
+                pattern: String::from(p_filter[0]),
+                options: String::from("i"),
+            },
+        );
+        p_doc.insert(
+            "v1",
+            Regex {
+                pattern: String::from(p_filter[1]),
+                options: String::from("i"),
+            },
+        );
+        p_doc.insert(
+            "v2",
+            Regex {
+                pattern: String::from(p_filter[2]),
+                options: String::from("i"),
+            },
+        );
+        p_doc.insert(
+            "v3",
+            Regex {
+                pattern: String::from(p_filter[3]),
+                options: String::from("i"),
+            },
+        );
+        p_doc.insert(
+            "v4",
+            Regex {
+                pattern: String::from(p_filter[4]),
+                options: String::from("i"),
+            },
+        );
+        p_doc.insert(
+            "v5",
+            Regex {
+                pattern: String::from(p_filter[5]),
+                options: String::from("i"),
+            },
+        );
+
+        p_doc
+    };
+
+    let query = doc! {
+        "$or": [
+            g_filter,
+            p_filter,
+        ]
+    };
+
+    let rules_cursor = collection
+        .find(Some(query), None)
         .await
         .map_err(|err| CasbinError::from(AdapterError(Box::new(err))))?;
 
