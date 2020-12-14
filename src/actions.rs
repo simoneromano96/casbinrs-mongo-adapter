@@ -34,8 +34,8 @@ pub async fn new(db: &Database) -> Result<Document> {
 }
 
 fn filtered_where_values<'a>(filter: &Filter<'a>) -> ([&'a str; 6], [&'a str; 6]) {
-    let mut g_filter: [&'a str; 6] = ["/.*/", "/.*/", "/.*/", "/.*/", "/.*/", "/.*/"];
-    let mut p_filter: [&'a str; 6] = ["/.*/", "/.*/", "/.*/", "/.*/", "/.*/", "/.*/"];
+    let mut g_filter: [&'a str; 6] = [".*", ".*", ".*", ".*", ".*", ".*"];
+    let mut p_filter: [&'a str; 6] = [".*", ".*", ".*", ".*", ".*", ".*"];
     for (idx, val) in filter.g.iter().enumerate() {
         if val != &"" {
             g_filter[idx] = val;
@@ -61,13 +61,17 @@ async fn casbin_rules_from_cursor(cursor: Cursor) -> Vec<CasbinRule> {
         .iter()
         .filter_map(|result| {
             if let Ok(document) = result {
+                let doc_format = format!("{:?}", document);
                 let rule = CasbinRule::from_document(document).unwrap();
+                let rule_format = format!("{:?}", rule);
                 Some(rule)
             } else {
                 None
             }
         })
         .collect();
+
+    let r_format = format!("{:?}", result);
 
     result
 }
@@ -97,7 +101,7 @@ pub(crate) async fn load_filtered_policy<'a>(
         g_doc.insert(
             "ptype",
             Regex {
-                pattern: String::from("/^g/"),
+                pattern: String::from("^g"),
                 options: String::from("i"),
             },
         );
@@ -153,7 +157,7 @@ pub(crate) async fn load_filtered_policy<'a>(
         p_doc.insert(
             "ptype",
             Regex {
-                pattern: String::from("/^p/"),
+                pattern: String::from("^p"),
                 options: String::from("i"),
             },
         );
@@ -210,12 +214,16 @@ pub(crate) async fn load_filtered_policy<'a>(
         ]
     };
 
+    let formatted_query = format!("{:?}", query);
+
     let rules_cursor = collection
         .find(Some(query), None)
         .await
         .map_err(|err| CasbinError::from(AdapterError(Box::new(err))))?;
 
     let casbin_rules = casbin_rules_from_cursor(rules_cursor).await;
+
+    let _formatted_rules = format!("{:?}", casbin_rules);
 
     Ok(casbin_rules)
 }
