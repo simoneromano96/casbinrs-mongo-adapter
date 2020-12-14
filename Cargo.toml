@@ -11,7 +11,7 @@ edition = "2018"
 casbin = { version = "2.0.3", default-features = false }
 
 # Async runtimes
-tokio = { version = "0.3.5", default-features = false, optional = true }
+tokio = { version = "0.2.24", default-features = false, optional = true }
 async-std = { version = "1.8.0", default-features = false, optional = true }
 
 # Driver
@@ -32,4 +32,4 @@ runtime-tokio = ["casbin/runtime-tokio", "mongodb/tokio-runtime"]
 # Test deps
 [dev-dependencies]
 async-std = { version = "1.8.0", features = [ "attributes" ] }
-tokio = { version = "0.3.5", features = [ "full" ] }
+tokio = { version = "0.2.24", features = [ "full" ] }
