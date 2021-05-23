@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 # Casbin
-casbin = { version = "<=2.0.3", default-features = false }
+casbin = { version = "<=2.0.2", default-features = false }
 
 # Async runtimes
 tokio = { version = "0.2.25", default-features = false, optional = true }
