@@ -11,16 +11,16 @@ edition = "2018"
 casbin = { version = "2.0.3", default-features = false }
 
 # Async runtimes
-tokio = { version = "0.2.24", default-features = false, optional = true }
-async-std = { version = "1.8.0", default-features = false, optional = true }
+tokio = { version = "0.2.25", default-features = false, optional = true }
+async-std = { version = "1.9.0", default-features = false, optional = true }
 
 # Driver
-mongodb = { version = "1.1.1", default-features = false }
+mongodb = { version = "1.2.1", default-features = false }
 
 # Others
-async-trait = "0.1.42"
+async-trait = "0.1.50"
 dotenv = "0.15.0"
-futures = "0.3.8"
+futures = "0.3.15"
 
 [features]
 default = ["runtime-tokio"]
@@ -31,5 +31,5 @@ runtime-tokio = ["casbin/runtime-tokio", "mongodb/tokio-runtime"]
 
 # Test deps
 [dev-dependencies]
-async-std = { version = "1.8.0", features = [ "attributes" ] }
-tokio = { version = "0.2.24", features = [ "full" ] }
+async-std = { version = "1.9.0", features = [ "attributes" ] }
+tokio = { version = "0.2.25", features = [ "full" ] }
